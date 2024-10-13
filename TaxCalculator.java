@@ -1,135 +1,113 @@
 package com.bartoszwalter.students.taxes;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 
-public static void main(String[] args) {
-		try {
-			InputStreamReader isr = new InputStreamReader(System.in);
-			BufferedReader br = new BufferedReader(isr);
+public class TaxCalculator {
+	private double socialSecurityTax;
+	private double healthSecurityTax;
+	private double sicknessSecurityTax;
+	private double healthTax9Percent;
+	private double healthTax7_75Percent;
+	private double taxDeductibleExpenses;
+	private double advanceTax;
+	private double netIncome;
 
-			System.out.print("Enter income: ");
-			income = Double.parseDouble(br.readLine());
+	private final DecimalFormat df00 = new DecimalFormat("#.00");
+	private final DecimalFormat df = new DecimalFormat("#");
 
-			System.out.print("Contract Type: (E)mployment, (C)ivil: ");
-			contractType = br.readLine().charAt(0);
+	public void calculateForEmploymentContract(double income) {
+		System.out.println("Income: " + df00.format(income));
+		calculateCommonDeductions(income);
+		calculateEmploymentSpecificTaxes(income);
+	}
 
-		} catch (Exception ex) {
-			System.out.println("Incorrect");
-			System.err.println(ex);
-			return;
-		}
+	public void calculateForCivilContract(double income) {
+		System.out.println("Income: " + df00.format(income));
+		calculateCommonDeductions(income);
+		calculateCivilSpecificTaxes(income);
+	}
 
-		DecimalFormat df00 = new DecimalFormat("#.00");
-		DecimalFormat df = new DecimalFormat("#");
+	private void calculateCommonDeductions(double income) {
+		double taxableIncome = calculateSocialSecurityTaxes(income);
+		System.out.println("Social Security: " + df00.format(socialSecurityTax));
+		System.out.println("Health Insurance: " + df00.format(healthSecurityTax));
+		System.out.println("Sickness Insurance: " + df00.format(sicknessSecurityTax));
 
-		if (contractType == 'E') {
-			System.out.println("EMPLOYMENT");
-			System.out.println("Income " + income);
-			double d_income = calculateIncome(income);
-			System.out.println("Social security tax "
-					+ df00.format(soc_security));
+		calculateHealthTaxes(taxableIncome);
+		System.out.println("Health Tax (9%): " + df00.format(healthTax9Percent) + ", Health Tax (7.75%): " + df00.format(healthTax7_75Percent));
+	}
 
-			System.out.println("Health social security tax    "
-					+ df00.format(soc_health_security));
-			System.out.println("Sickness social security tax  "
-					+ df00.format(soc_sick_security));
-			System.out
-					.println("Income basis for health social security: "
-							+ income);
-			calculateOtherTaxes(income);
-			System.out.println("Health social security tax: 9% = "
-					+ df00.format(soc_health1) + " 7,75% = " + df00.format(soc_health2));
-			System.out.println("Tax deductible expenses "
-					+ taxDeductibleExpenses
-	 );
-			double taxedIncome = income - taxDeductibleExpenses ;
-			double taxedIncome0 = Double
-					.parseDouble(df.format(taxedIncome));
-			System.out.println("income " + taxedIncome
-					+ " rounded " + df.format(taxedIncome0));
-			calculateTax(taxedIncome0);
-			System.out.println("Advance tax 18 % = "
-					+ advanceTax);
-			System.out.println("Tax free income = " + taxFreeIncome);
-			double taxPaid = advanceTax - taxFreeIncome;
-			System.out.println("Reduced tax = "
-					+ df00.format(taxPaid));
-			calculateAdvanceTax();
-			advanceTaxPaid0 = Double.parseDouble(df.format(advanceTaxPaid));
-			System.out.println("Advance tax paid = "
-					+ df00.format(advanceTaxPaid) + " rounded = "
-					+ df.format(advanceTaxPaid0));
-			double netIncome = income
-					- ((soc_securitys + soc_health_security + soc_sick_security) + soc_health1 + advanceTaxPaid0);
-			System.out.println();
-			System.out
-					.println("Net income = "
-							+ df00.format(netIncome));
-		} else if (umowacontractType == 'C') {
-			System.out.println("income " + income);
-			double income = calculateIncome(income);
-			System.out.println("Social security tax = "
-					+ df00.format(soc_security));
-			System.out.println("Health social security tax = "
-					+ df00.format(soc_health_security));
-			System.out.println("Sickness social security tax = "
-					+ df00.format(soc_sick_security));
-			System.out
-					.println("Income for calculating health security tax: "
-							+ income);
-			calculateOtherTaxes(income);
-			System.out.println("Health security tax: 9% = "
-					+ df00.format(soc_health1) + " 7,75% = " + df00.format(soc_health2));
-			taxFreeIncome = 0;
-			taxDeductibleExpenses  = (income * 20) / 100;
-			System.out.println("Tax deductible expenses = "
-					+ taxDeductibleExpenses
-	 );
-			double taxedIncome = income - taxDeductibleExpenses ;
-			double taxedIncome0 = Double.parseDouble(df.format(taxedIncome));
-			System.out.println("income to be taxed = " + taxedIncome
-					+ " rounded = " + df.format(taxedIncome0));
-			calculateTax(taxedIncome0);
-			System.out.println("Advance tax 18 % = "
-					+ advanceTax);
-			double  advanceTax;
-			System.out.println("Already paid tax = "
-					+ df00.format(taxPaid));
-			calculateAdvanceTax();
-			advanceTaxPaid0 = Double.parseDouble(df.format(advanceTaxPaid));
-			System.out.println("Advance tax  = "
-					+ df00.format(advanceTaxPaid) + " roundedu = "
-					+ df.format(advanceTaxPaid0));
-			double netIncome = income
-					- ((soc_security + soc_health_security + soc_sick_security) + soc_health1 + advanceTaxPaid0);
-			System.out.println();
-			System.out
-					.println("Net income = "
-							+ df00.format(netIncome));
+	private void calculateEmploymentSpecificTaxes(double income) {
+		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income, TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE);
+		printTaxDeductibleExpenses();
+
+		double taxableIncome = getTaxableIncome(income);
+		calculateAdvanceTax(taxableIncome, true);
+	}
+
+	private void calculateCivilSpecificTaxes(double income) {
+		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income, TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE);
+		printTaxDeductibleExpenses();
+
+		double taxableIncome = getTaxableIncome(income);
+		calculateAdvanceTax(taxableIncome, false);
+	}
+
+	private void printTaxDeductibleExpenses() {
+		System.out.println("Tax Deductible Expenses: " + df00.format(taxDeductibleExpenses));
+	}
+
+	private double calculateSocialSecurityTaxes(double income) {
+		socialSecurityTax = (income * TaxConstants.SOCIAL_SECURITY_PERCENTAGE) / 100;
+		healthSecurityTax = (income * TaxConstants.HEALTH_SECURITY_PERCENTAGE) / 100;
+		sicknessSecurityTax = (income * TaxConstants.SICKNESS_SECURITY_PERCENTAGE) / 100;
+		return income - socialSecurityTax - healthSecurityTax - sicknessSecurityTax;
+	}
+
+	private void calculateHealthTaxes(double taxableIncome) {
+		healthTax9Percent = (taxableIncome * TaxConstants.HEALTH_TAX_9_PERCENT) / 100;
+		healthTax7_75Percent = (taxableIncome * TaxConstants.HEALTH_TAX_7_75_PERCENT) / 100;
+	}
+
+	private double calculateTaxDeductibleExpenses(double income, double percentage) {
+		return (income * percentage) / 100;
+	}
+
+	private double getTaxableIncome(double income) {
+		return income - taxDeductibleExpenses;
+	}
+
+	private void calculateAdvanceTax(double taxableIncome, boolean isEmployment) {
+		double roundedIncome = Double.parseDouble(df.format(taxableIncome));
+		System.out.println("Taxable Income: " + df00.format(taxableIncome) + ", Rounded: " + df.format(roundedIncome));
+
+		calculateAdvanceTax(roundedIncome);
+		System.out.println("Advance Tax (18%): " + df00.format(advanceTax));
+
+		if (isEmployment) {
+			calculateReducedTax();
 		} else {
-			System.out.println("Unknown type of contract!");
+			calculateCivilTax();
 		}
 	}
 
-	public static void calculateAdvanceTax() {
-		advanceTaxPaidadvanceTax - soc_health2 - taxFreeIncome;
+	private void calculateAdvanceTax(double taxableIncome) {
+		advanceTax = (taxableIncome * TaxConstants.TAX_PERCENTAGE) / 100;
 	}
 
-	public static void calculateTax(double income) {
-		advanceTax = (income * 18) / 100;
+	private void calculateReducedTax() {
+		System.out.println("Tax-Free Income: " + df00.format(TaxConstants.TAX_FREE_AMOUNT));
+		double taxPaid = advanceTax - TaxConstants.TAX_FREE_AMOUNT;
+		System.out.println("Reduced Tax: " + df00.format(taxPaid));
+		calculateNetIncome(taxPaid);
 	}
 
-	public static double calculateIncome(double income) {
-		soc_security = (income * 9.76) / 100;
-		soc_health_security = (income * 1.5) / 100;
-		soc_sick_secur = (income * 2.45) / 100;
-		return (income - soc_security - soc_health_security - soc_sick_secur);
+	private void calculateCivilTax() {
+		calculateNetIncome(advanceTax);
 	}
 
-	public static void calculateOtherTaxes(double income) {
-		soc_health1 = (income * 9) / 100;
-		soc_health2 = (income * 7.75) / 100;
+	private void calculateNetIncome(double taxPaid) {
+		netIncome = socialSecurityTax + healthSecurityTax + sicknessSecurityTax + healthTax9Percent + taxPaid;
+		System.out.println("Net Income: " + df00.format(netIncome));
 	}
 }
