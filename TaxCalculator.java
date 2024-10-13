@@ -10,9 +10,8 @@ public class TaxCalculator {
 	private double healthTax7_75Percent;
 	private double taxDeductibleExpenses;
 	private double advanceTax;
-	private double netIncome;
 
-	private final DecimalFormat df00 = new DecimalFormat("#.00");
+    private final DecimalFormat df00 = new DecimalFormat("#.00");
 	private final DecimalFormat df = new DecimalFormat("#");
 
 	public void calculateForEmploymentContract(double income) {
@@ -38,7 +37,7 @@ public class TaxCalculator {
 	}
 
 	private void calculateEmploymentSpecificTaxes(double income) {
-		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income, TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE);
+		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
 		printTaxDeductibleExpenses();
 
 		double taxableIncome = getTaxableIncome(income);
@@ -46,7 +45,7 @@ public class TaxCalculator {
 	}
 
 	private void calculateCivilSpecificTaxes(double income) {
-		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income, TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE);
+		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
 		printTaxDeductibleExpenses();
 
 		double taxableIncome = getTaxableIncome(income);
@@ -69,8 +68,8 @@ public class TaxCalculator {
 		healthTax7_75Percent = (taxableIncome * TaxConstants.HEALTH_TAX_7_75_PERCENT) / 100;
 	}
 
-	private double calculateTaxDeductibleExpenses(double income, double percentage) {
-		return (income * percentage) / 100;
+	private double calculateTaxDeductibleExpenses(double income) {
+		return (income * TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE) / 100;
 	}
 
 	private double getTaxableIncome(double income) {
@@ -107,7 +106,7 @@ public class TaxCalculator {
 	}
 
 	private void calculateNetIncome(double taxPaid) {
-		netIncome = socialSecurityTax + healthSecurityTax + sicknessSecurityTax + healthTax9Percent + taxPaid;
+        double netIncome = socialSecurityTax + healthSecurityTax + sicknessSecurityTax + healthTax9Percent + taxPaid;
 		System.out.println("Net Income: " + df00.format(netIncome));
 	}
 }
