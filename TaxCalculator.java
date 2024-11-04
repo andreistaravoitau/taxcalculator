@@ -1,112 +1,91 @@
 package com.bartoszwalter.students.taxes;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 public class TaxCalculator {
-	private double socialSecurityTax;
-	private double healthSecurityTax;
-	private double sicknessSecurityTax;
-	private double healthTax9Percent;
-	private double healthTax7_75Percent;
-	private double taxDeductibleExpenses;
-	private double advanceTax;
 
-    private final DecimalFormat df00 = new DecimalFormat("#.00");
-	private final DecimalFormat df = new DecimalFormat("#");
+	private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
 
-	public void calculateForEmploymentContract(double income) {
-		System.out.println("Income: " + df00.format(income));
-		calculateCommonDeductions(income);
-		calculateEmploymentSpecificTaxes(income);
+	public TaxResult calculateTaxes(BigDecimal income, ContractType contractType) {
+		TaxResult result = new TaxResult();
+
+		BigDecimal socialSecurityTax = calculateSocialSecurityTax(income);
+		BigDecimal healthSecurityTax = calculateHealthSecurityTax(income);
+		BigDecimal sicknessSecurityTax = calculateSicknessSecurityTax(income);
+		BigDecimal totalSocialContributions = socialSecurityTax
+				.add(healthSecurityTax)
+				.add(sicknessSecurityTax);
+
+		result.setSocialSecurityTax(socialSecurityTax);
+		result.setHealthSecurityTax(healthSecurityTax);
+		result.setSicknessSecurityTax(sicknessSecurityTax);
+
+		BigDecimal incomeAfterContributions = income.subtract(totalSocialContributions);
+
+		BigDecimal healthTaxNinePercent = calculateHealthTax(incomeAfterContributions, TaxConstants.HEALTH_TAX_NINE_PERCENT);
+		BigDecimal healthTaxSevenSeventyFivePercent = calculateHealthTax(incomeAfterContributions, TaxConstants.HEALTH_TAX_SEVEN_SEVENTY_FIVE_PERCENT);
+
+		result.setHealthTaxNinePercent(healthTaxNinePercent);
+		result.setHealthTaxSevenSeventyFivePercent(healthTaxSevenSeventyFivePercent);
+
+		BigDecimal taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
+		result.setTaxDeductibleExpenses(taxDeductibleExpenses);
+
+		BigDecimal taxableIncome = income.subtract(taxDeductibleExpenses);
+		BigDecimal roundedTaxableIncome = taxableIncome.setScale(0, RoundingMode.HALF_UP);
+
+		BigDecimal advanceTax = calculateAdvanceTax(roundedTaxableIncome);
+		result.setAdvanceTax(advanceTax);
+
+		BigDecimal taxToPay = calculateTaxToPay(advanceTax, contractType);
+
+		BigDecimal netIncome = income.subtract(totalSocialContributions)
+				.subtract(healthTaxNinePercent)
+				.subtract(taxToPay);
+
+		result.setNetIncome(netIncome);
+
+		return result;
 	}
 
-	public void calculateForCivilContract(double income) {
-		System.out.println("Income: " + df00.format(income));
-		calculateCommonDeductions(income);
-		calculateCivilSpecificTaxes(income);
+	private BigDecimal calculateSocialSecurityTax(BigDecimal income) {
+		return income.multiply(TaxConstants.SOCIAL_SECURITY_PERCENTAGE)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private void calculateCommonDeductions(double income) {
-		double taxableIncome = calculateSocialSecurityTaxes(income);
-		System.out.println("Social Security: " + df00.format(socialSecurityTax));
-		System.out.println("Health Insurance: " + df00.format(healthSecurityTax));
-		System.out.println("Sickness Insurance: " + df00.format(sicknessSecurityTax));
-
-		calculateHealthTaxes(taxableIncome);
-		System.out.println("Health Tax (9%): " + df00.format(healthTax9Percent) + ", Health Tax (7.75%): " + df00.format(healthTax7_75Percent));
+	private BigDecimal calculateHealthSecurityTax(BigDecimal income) {
+		return income.multiply(TaxConstants.HEALTH_SECURITY_PERCENTAGE)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private void calculateEmploymentSpecificTaxes(double income) {
-		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
-		printTaxDeductibleExpenses();
-
-		double taxableIncome = getTaxableIncome(income);
-		calculateAdvanceTax(taxableIncome, true);
+	private BigDecimal calculateSicknessSecurityTax(BigDecimal income) {
+		return income.multiply(TaxConstants.SICKNESS_SECURITY_PERCENTAGE)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private void calculateCivilSpecificTaxes(double income) {
-		taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
-		printTaxDeductibleExpenses();
-
-		double taxableIncome = getTaxableIncome(income);
-		calculateAdvanceTax(taxableIncome, false);
+	private BigDecimal calculateHealthTax(BigDecimal incomeAfterContributions, BigDecimal rate) {
+		return incomeAfterContributions.multiply(rate)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private void printTaxDeductibleExpenses() {
-		System.out.println("Tax Deductible Expenses: " + df00.format(taxDeductibleExpenses));
+	private BigDecimal calculateTaxDeductibleExpenses(BigDecimal income) {
+		return income.multiply(TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private double calculateSocialSecurityTaxes(double income) {
-		socialSecurityTax = (income * TaxConstants.SOCIAL_SECURITY_PERCENTAGE) / 100;
-		healthSecurityTax = (income * TaxConstants.HEALTH_SECURITY_PERCENTAGE) / 100;
-		sicknessSecurityTax = (income * TaxConstants.SICKNESS_SECURITY_PERCENTAGE) / 100;
-		return income - socialSecurityTax - healthSecurityTax - sicknessSecurityTax;
+	private BigDecimal calculateAdvanceTax(BigDecimal taxableIncome) {
+		return taxableIncome.multiply(TaxConstants.TAX_PERCENTAGE)
+				.divide(new BigDecimal("100"), MC);
 	}
 
-	private void calculateHealthTaxes(double taxableIncome) {
-		healthTax9Percent = (taxableIncome * TaxConstants.HEALTH_TAX_9_PERCENT) / 100;
-		healthTax7_75Percent = (taxableIncome * TaxConstants.HEALTH_TAX_7_75_PERCENT) / 100;
-	}
-
-	private double calculateTaxDeductibleExpenses(double income) {
-		return (income * TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE) / 100;
-	}
-
-	private double getTaxableIncome(double income) {
-		return income - taxDeductibleExpenses;
-	}
-
-	private void calculateAdvanceTax(double taxableIncome, boolean isEmployment) {
-		double roundedIncome = Double.parseDouble(df.format(taxableIncome));
-		System.out.println("Taxable Income: " + df00.format(taxableIncome) + ", Rounded: " + df.format(roundedIncome));
-
-		calculateAdvanceTax(roundedIncome);
-		System.out.println("Advance Tax (18%): " + df00.format(advanceTax));
-
-		if (isEmployment) {
-			calculateReducedTax();
+	private BigDecimal calculateTaxToPay(BigDecimal advanceTax, ContractType contractType) {
+		if (contractType == ContractType.EMPLOYMENT) {
+			BigDecimal taxToPay = advanceTax.subtract(TaxConstants.TAX_FREE_AMOUNT);
+			return taxToPay.max(BigDecimal.ZERO);
 		} else {
-			calculateCivilTax();
+			return advanceTax;
 		}
-	}
-
-	private void calculateAdvanceTax(double taxableIncome) {
-		advanceTax = (taxableIncome * TaxConstants.TAX_PERCENTAGE) / 100;
-	}
-
-	private void calculateReducedTax() {
-		System.out.println("Tax-Free Income: " + df00.format(TaxConstants.TAX_FREE_AMOUNT));
-		double taxPaid = advanceTax - TaxConstants.TAX_FREE_AMOUNT;
-		System.out.println("Reduced Tax: " + df00.format(taxPaid));
-		calculateNetIncome(taxPaid);
-	}
-
-	private void calculateCivilTax() {
-		calculateNetIncome(advanceTax);
-	}
-
-	private void calculateNetIncome(double taxPaid) {
-        double netIncome = socialSecurityTax + healthSecurityTax + sicknessSecurityTax + healthTax9Percent + taxPaid;
-		System.out.println("Net Income: " + df00.format(netIncome));
 	}
 }
