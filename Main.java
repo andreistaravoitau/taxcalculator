@@ -6,8 +6,9 @@ import java.io.InputStreamReader;
 public class Main {
     public static void main(String[] args) {
         double income;
-        char contractType;
+        ContractType contractType;
 
+        char input;
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
@@ -15,7 +16,7 @@ public class Main {
             income = Double.parseDouble(reader.readLine());
 
             System.out.print("Contract Type: (E)mployment, (C)ivil: ");
-            contractType = reader.readLine().toUpperCase().charAt(0);
+            input = reader.readLine().toUpperCase().charAt(0);
 
         } catch (Exception ex) {
             System.out.println("Invalid input.");
@@ -24,14 +25,18 @@ public class Main {
         }
 
         TaxCalculator taxCalculator = new TaxCalculator();
-        if (contractType == 'E') {
-            System.out.println("Employment Contract");
-            taxCalculator.calculateForEmploymentContract(income);
-        } else if (contractType == 'C') {
-            System.out.println("Civil Contract");
-            taxCalculator.calculateForCivilContract(income);
-        } else {
-            System.out.println("Unknown contract type!");
+        switch (input) {
+            case 'E':
+                contractType = ContractType.EMPLOYMENT;
+                taxCalculator.calculateForEmploymentContract(income);
+                break;
+            case 'C':
+                contractType = ContractType.CIVIL;
+                taxCalculator.calculateForCivilContract(income);
+                break;
+            default:
+                System.out.println("Unknown contract type!");
+                return;
         }
     }
 }
