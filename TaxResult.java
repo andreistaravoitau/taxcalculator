@@ -1,7 +1,6 @@
-package com.bartoszwalter.students.taxes;
-
 import java.math.BigDecimal;
 
+// Class to store and retrieve tax calculation results
 public class TaxResult {
     private BigDecimal socialSecurityTax;
     private BigDecimal healthSecurityTax;
@@ -12,6 +11,7 @@ public class TaxResult {
     private BigDecimal advanceTax;
     private BigDecimal netIncome;
 
+    // Getter and setter for social security tax
     public BigDecimal getSocialSecurityTax() {
         return socialSecurityTax;
     }
@@ -20,6 +20,7 @@ public class TaxResult {
         this.socialSecurityTax = socialSecurityTax;
     }
 
+    // Getter and setter for health security tax
     public BigDecimal getHealthSecurityTax() {
         return healthSecurityTax;
     }
@@ -28,6 +29,7 @@ public class TaxResult {
         this.healthSecurityTax = healthSecurityTax;
     }
 
+    // Getter and setter for sickness security tax
     public BigDecimal getSicknessSecurityTax() {
         return sicknessSecurityTax;
     }
@@ -36,6 +38,7 @@ public class TaxResult {
         this.sicknessSecurityTax = sicknessSecurityTax;
     }
 
+    // Getter and setter for 9% health tax
     public BigDecimal getHealthTaxNinePercent() {
         return healthTaxNinePercent;
     }
@@ -44,6 +47,7 @@ public class TaxResult {
         this.healthTaxNinePercent = healthTaxNinePercent;
     }
 
+    // Getter and setter for 7.75% health tax
     public BigDecimal getHealthTaxSevenSeventyFivePercent() {
         return healthTaxSevenSeventyFivePercent;
     }
@@ -52,6 +56,7 @@ public class TaxResult {
         this.healthTaxSevenSeventyFivePercent = healthTaxSevenSeventyFivePercent;
     }
 
+    // Getter and setter for tax-deductible expenses
     public BigDecimal getTaxDeductibleExpenses() {
         return taxDeductibleExpenses;
     }
@@ -60,6 +65,7 @@ public class TaxResult {
         this.taxDeductibleExpenses = taxDeductibleExpenses;
     }
 
+    // Getter and setter for advance tax
     public BigDecimal getAdvanceTax() {
         return advanceTax;
     }
@@ -68,6 +74,7 @@ public class TaxResult {
         this.advanceTax = advanceTax;
     }
 
+    // Getter and setter for net income
     public BigDecimal getNetIncome() {
         return netIncome;
     }
