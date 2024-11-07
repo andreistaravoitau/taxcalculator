@@ -1,3 +1,5 @@
+package com.bartoszwalter.students.taxes;
+
 import java.math.BigDecimal;
 
 // Class to store and retrieve tax calculation results
