@@ -1,3 +1,4 @@
+
 package com.bartoszwalter.students.taxes;
 
 import java.math.BigDecimal;
