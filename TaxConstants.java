@@ -11,4 +11,9 @@ public class TaxConstants {
     public static final BigDecimal HEALTH_TAX_NINE_PERCENT = new BigDecimal("9.0");
     public static final BigDecimal HEALTH_TAX_SEVEN_SEVENTY_FIVE_PERCENT = new BigDecimal("7.75");
     public static final BigDecimal TAX_FREE_AMOUNT = new BigDecimal("46.33");
+
+    public static final String CONTRACT_EMPLOYMENT_KEY = "E";
+    public static final String CONTRACT_CIVIL_KEY = "C";
+    public static final String CONTRACT_EMPLOYMENT_DESC = "Employment Type";
+    public static final String CONTRACT_CIVIL_DESC = "Civil Type";
 }

@@ -10,7 +10,7 @@ public class TaxCalculator {
 	private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
 
 	// Calculates taxes based on income and contract type
-	public TaxResult calculateTaxes(BigDecimal income, ContractType contractType) {
+	public TaxResult calculateTaxes(BigDecimal income, String contractTypeCode) {
 		TaxResult result = new TaxResult();
 
 		// Calculate social contributions
@@ -48,7 +48,7 @@ public class TaxCalculator {
 		result.setAdvanceTax(advanceTax);
 
 		// Calculate final tax to pay based on contract type
-		BigDecimal taxToPay = calculateTaxToPay(advanceTax, contractType);
+		BigDecimal taxToPay = calculateTaxToPay(advanceTax, contractTypeCode);
 
 		// Calculate net income
 		BigDecimal netIncome = income.subtract(totalSocialContributions)
@@ -92,8 +92,8 @@ public class TaxCalculator {
 	}
 
 	// Determines final tax amount, considering contract type
-	private BigDecimal calculateTaxToPay(BigDecimal advanceTax, ContractType contractType) {
-		if (contractType == ContractType.EMPLOYMENT) {
+	private BigDecimal calculateTaxToPay(BigDecimal advanceTax, String contractType) {
+		if (contractType.equals("E")) {
 			BigDecimal taxToPay = advanceTax.subtract(TaxConstants.TAX_FREE_AMOUNT);
 			return taxToPay.max(BigDecimal.ZERO);
 		} else {

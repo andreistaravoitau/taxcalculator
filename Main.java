@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Scanner;
 
+import static com.bartoszwalter.students.taxes.TaxConstants.CONTRACT_EMPLOYMENT_KEY;
+
 public class Main {
     public static void main(String[] args) {
         BigDecimal income;
-        ContractType contractType;
+        String contractTypeCode;
 
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.print("Enter income: ");
@@ -23,17 +25,11 @@ public class Main {
             }
 
             System.out.print("Contract Type: (E)mployment, (C)ivil: ");
-            String input = scanner.next().trim().toUpperCase();
-            switch (input) {
-                case "E":
-                    contractType = ContractType.EMPLOYMENT;
-                    break;
-                case "C":
-                    contractType = ContractType.CIVIL;
-                    break;
-                default:
-                    System.out.println("Unknown contract type!");
-                    return;
+            contractTypeCode = scanner.next().trim().toUpperCase();
+
+            if (!ContractType.CONTRACT_TYPES.containsKey(contractTypeCode)) {
+                System.out.println("Unknown contract type!");
+                return;
             }
 
         } catch (Exception ex) {
@@ -42,15 +38,15 @@ public class Main {
         }
 
         TaxCalculator taxCalculator = new TaxCalculator();
-        TaxResult result = taxCalculator.calculateTaxes(income, contractType);
+        TaxResult result = taxCalculator.calculateTaxes(income, contractTypeCode);
 
-        displayResults(income, contractType, result);
+        displayResults(income, contractTypeCode, result);
     }
 
-    private static void displayResults(BigDecimal income, ContractType contractType, TaxResult result) {
+    private static void displayResults(BigDecimal income, String contractTypeCode, TaxResult result) {
         System.out.println("\n=== Tax Calculation Result ===");
         System.out.println("Income: " + formatCurrency(income));
-        System.out.println("Contract Type: " + contractType);
+        System.out.println("Contract Type: " + ContractType.getContractTypeDescription(contractTypeCode));
 
         System.out.println("\n--- Social Contributions ---");
         System.out.println("Social Security Tax (9.76%): " + formatCurrency(result.getSocialSecurityTax()));
@@ -66,7 +62,7 @@ public class Main {
         System.out.println("Taxable Income: " + formatCurrency(income.subtract(result.getTaxDeductibleExpenses())));
         System.out.println("Advance Tax (18%): " + formatCurrency(result.getAdvanceTax()));
 
-        if (contractType == ContractType.EMPLOYMENT) {
+        if (contractTypeCode.equals(CONTRACT_EMPLOYMENT_KEY)) {
             System.out.println("Tax-Free Amount: " + formatCurrency(TaxConstants.TAX_FREE_AMOUNT));
             BigDecimal taxToPay = result.getAdvanceTax().subtract(TaxConstants.TAX_FREE_AMOUNT);
             taxToPay = taxToPay.max(BigDecimal.ZERO);
