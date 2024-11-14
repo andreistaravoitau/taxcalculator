@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Scanner;
 
-import static com.bartoszwalter.students.taxes.TaxConstants.CONTRACT_EMPLOYMENT_KEY;
-
 public class Main {
     public static void main(String[] args) {
         BigDecimal income;
@@ -31,14 +29,13 @@ public class Main {
                 System.out.println("Unknown contract type!");
                 return;
             }
-
         } catch (Exception ex) {
             System.out.println("Invalid input.");
             return;
         }
 
         TaxCalculator taxCalculator = new TaxCalculator();
-        TaxResult result = taxCalculator.calculateTaxes(income, contractTypeCode);
+        TaxResult result = taxCalculator.calculateTaxes(income);
 
         displayResults(income, contractTypeCode, result);
     }
@@ -62,15 +59,7 @@ public class Main {
         System.out.println("Taxable Income: " + formatCurrency(income.subtract(result.getTaxDeductibleExpenses())));
         System.out.println("Advance Tax (18%): " + formatCurrency(result.getAdvanceTax()));
 
-        if (contractTypeCode.equals(CONTRACT_EMPLOYMENT_KEY)) {
-            System.out.println("Tax-Free Amount: " + formatCurrency(TaxConstants.TAX_FREE_AMOUNT));
-            BigDecimal taxToPay = result.getAdvanceTax().subtract(TaxConstants.TAX_FREE_AMOUNT);
-            taxToPay = taxToPay.max(BigDecimal.ZERO);
-            System.out.println("Tax to Pay after Tax-Free Amount: " + formatCurrency(taxToPay));
-        } else {
-            System.out.println("Tax to Pay: " + formatCurrency(result.getAdvanceTax()));
-        }
-
+        System.out.println("Tax to Pay: " + formatCurrency(result.getAdvanceTax()));
         System.out.println("\n--- Net Income ---");
         System.out.println("Net Income: " + formatCurrency(result.getNetIncome()));
     }

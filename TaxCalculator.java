@@ -1,103 +1,50 @@
-
 package com.bartoszwalter.students.taxes;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 
 public class TaxCalculator {
 
-	private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
+	private final SocialSecurityTaxCalculator socialSecurityTaxCalculator = new SocialSecurityTaxCalculator();
+	private final HealthSecurityTaxCalculator healthSecurityTaxCalculator = new HealthSecurityTaxCalculator();
+	private final SicknessSecurityTaxCalculator sicknessSecurityTaxCalculator = new SicknessSecurityTaxCalculator();
+	private final TaxDeductibleExpensesCalculator taxDeductibleExpensesCalculator = new TaxDeductibleExpensesCalculator();
+	private final AdvanceTaxCalculator advanceTaxCalculator = new AdvanceTaxCalculator();
 
-	// Calculates taxes based on income and contract type
-	public TaxResult calculateTaxes(BigDecimal income, String contractTypeCode) {
+	private final HealthTaxCalculator healthTaxNinePercentCalculator = new HealthTaxCalculator(TaxConstants.HEALTH_TAX_NINE_PERCENT);
+	private final HealthTaxCalculator healthTaxSevenSeventyFivePercentCalculator = new HealthTaxCalculator(TaxConstants.HEALTH_TAX_SEVEN_SEVENTY_FIVE_PERCENT);
+
+	public TaxResult calculateTaxes(BigDecimal income) {
 		TaxResult result = new TaxResult();
 
-		// Calculate social contributions
-		BigDecimal socialSecurityTax = calculateSocialSecurityTax(income);
-		BigDecimal healthSecurityTax = calculateHealthSecurityTax(income);
-		BigDecimal sicknessSecurityTax = calculateSicknessSecurityTax(income);
-		BigDecimal totalSocialContributions = socialSecurityTax
-				.add(healthSecurityTax)
-				.add(sicknessSecurityTax);
+		BigDecimal socialSecurityTax = socialSecurityTaxCalculator.calculate(income);
+		BigDecimal healthSecurityTax = healthSecurityTaxCalculator.calculate(income);
+		BigDecimal sicknessSecurityTax = sicknessSecurityTaxCalculator.calculate(income);
+		BigDecimal totalSocialContributions = socialSecurityTax.add(healthSecurityTax).add(sicknessSecurityTax);
 
 		result.setSocialSecurityTax(socialSecurityTax);
 		result.setHealthSecurityTax(healthSecurityTax);
 		result.setSicknessSecurityTax(sicknessSecurityTax);
 
-		// Calculate income after contributions
 		BigDecimal incomeAfterContributions = income.subtract(totalSocialContributions);
 
-		// Calculate health taxes
-		BigDecimal healthTaxNinePercent = calculateHealthTax(incomeAfterContributions, TaxConstants.HEALTH_TAX_NINE_PERCENT);
-		BigDecimal healthTaxSevenSeventyFivePercent = calculateHealthTax(incomeAfterContributions, TaxConstants.HEALTH_TAX_SEVEN_SEVENTY_FIVE_PERCENT);
+		BigDecimal healthTaxNinePercent = healthTaxNinePercentCalculator.calculate(incomeAfterContributions);
+		BigDecimal healthTaxSevenSeventyFivePercent = healthTaxSevenSeventyFivePercentCalculator.calculate(incomeAfterContributions);
 
 		result.setHealthTaxNinePercent(healthTaxNinePercent);
 		result.setHealthTaxSevenSeventyFivePercent(healthTaxSevenSeventyFivePercent);
 
-		// Calculate tax-deductible expenses
-		BigDecimal taxDeductibleExpenses = calculateTaxDeductibleExpenses(income);
+		BigDecimal taxDeductibleExpenses = taxDeductibleExpensesCalculator.calculate(income);
 		result.setTaxDeductibleExpenses(taxDeductibleExpenses);
 
-		// Calculate taxable income and round it
-		BigDecimal taxableIncome = income.subtract(taxDeductibleExpenses);
-		BigDecimal roundedTaxableIncome = taxableIncome.setScale(0, RoundingMode.HALF_UP);
-
-		// Calculate advance tax
-		BigDecimal advanceTax = calculateAdvanceTax(roundedTaxableIncome);
+		BigDecimal taxableIncome = income.subtract(taxDeductibleExpenses).setScale(0, RoundingMode.HALF_UP);
+		BigDecimal advanceTax = advanceTaxCalculator.calculate(taxableIncome);
 		result.setAdvanceTax(advanceTax);
 
-		// Calculate final tax to pay based on contract type
-		BigDecimal taxToPay = calculateTaxToPay(advanceTax, contractTypeCode);
-
-		// Calculate net income
-		BigDecimal netIncome = income.subtract(totalSocialContributions)
+		result.setNetIncome(income.subtract(totalSocialContributions)
 				.subtract(healthTaxNinePercent)
-				.subtract(taxToPay);
-
-		result.setNetIncome(netIncome);
+				.subtract(advanceTax));
 
 		return result;
-	}
-
-	private BigDecimal calculateSocialSecurityTax(BigDecimal income) {
-		return income.multiply(TaxConstants.SOCIAL_SECURITY_PERCENTAGE)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	private BigDecimal calculateHealthSecurityTax(BigDecimal income) {
-		return income.multiply(TaxConstants.HEALTH_SECURITY_PERCENTAGE)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	private BigDecimal calculateSicknessSecurityTax(BigDecimal income) {
-		return income.multiply(TaxConstants.SICKNESS_SECURITY_PERCENTAGE)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	// Calculate health tax based on a given rate
-	private BigDecimal calculateHealthTax(BigDecimal incomeAfterContributions, BigDecimal rate) {
-		return incomeAfterContributions.multiply(rate)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	private BigDecimal calculateTaxDeductibleExpenses(BigDecimal income) {
-		return income.multiply(TaxConstants.TAX_DEDUCTIBLE_EXPENSES_PERCENTAGE)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	private BigDecimal calculateAdvanceTax(BigDecimal taxableIncome) {
-		return taxableIncome.multiply(TaxConstants.TAX_PERCENTAGE)
-				.divide(new BigDecimal("100"), MC);
-	}
-
-	// Determines final tax amount, considering contract type
-	private BigDecimal calculateTaxToPay(BigDecimal advanceTax, String contractType) {
-		if (contractType.equals("E")) {
-			BigDecimal taxToPay = advanceTax.subtract(TaxConstants.TAX_FREE_AMOUNT);
-			return taxToPay.max(BigDecimal.ZERO);
-		} else {
-			return advanceTax;
-		}
 	}
 }

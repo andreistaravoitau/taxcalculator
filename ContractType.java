@@ -16,5 +16,4 @@ public class ContractType {
     public static String getContractTypeDescription(String code) {
         return CONTRACT_TYPES.getOrDefault(code.toUpperCase(), "Unknown Type");
     }
-
 }
